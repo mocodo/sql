@@ -179,6 +179,16 @@ class MySQLConnection extends \PDO
                     $this->query .= ')';
 
                     break;
+                case 'AND':
+                    if (!is_array($value)) {
+                        throw new \InvalidArgumentException('Expected array for AND condition');
+                    }
+
+                    $this->query .= ' AND (1';
+                    $this->conditions($value);
+                    $this->query .= ')';
+
+                    break;
                 default:
                     // same as =
                     $this->query .= sprintf(
