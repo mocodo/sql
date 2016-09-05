@@ -17,5 +17,10 @@
     "psr-4": {
       "Mocodo\\Db\\": "src"
     }
+  },
+  "scripts": {
+    "tests": [
+      "php vendor/bin/phpunit --colors=always --disallow-todo-tests -c phpunit.xml"
+    ]
   }
 }
