@@ -6,6 +6,8 @@ class MySQLConnection extends \PDO
 {
     private $query;
 
+    private $operators = ['=', '>', '>=', '<', '<=', '!=', 'LIKE', 'IN', 'BETWEEN', 'IS'];
+
     public function quote($value, $parameterType = \PDO::PARAM_STR)
     {
         if (!is_array($value)) {
@@ -225,5 +227,10 @@ class MySQLConnection extends \PDO
     protected function having()
     {
         throw new \RuntimeException('Method is not implemented yet');
+    }
+
+    private function parseKey($key)
+    {
+
     }
 }
