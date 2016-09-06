@@ -6,8 +6,6 @@ class MySQLConnection extends \PDO
 {
     private $query;
 
-    private $operators = ['=', '>', '>=', '<', '<=', '!=', 'LIKE', 'IN', 'BETWEEN', 'IS'];
-
     public function quote($value, $parameterType = \PDO::PARAM_STR)
     {
         if (!is_array($value)) {
@@ -110,12 +108,9 @@ class MySQLConnection extends \PDO
     {
         // default behavior assume that operator is = and concat to AND
         foreach ($conditions as $key => $value) {
-            // extract the operator
-            $operator = explode(' ', trim($key));
-            $isOr = (!empty($operator[0]) && 'OR' === mb_strtoupper(trim($operator[0])));
-            $operator = mb_strtoupper(end($operator));
+            $keyAttributes = $this->parseKey($key);
 
-            switch ($operator) {
+            switch ($keyAttributes['operator']) {
                 case '=':
                 case '>':
                 case '>=':
@@ -124,9 +119,10 @@ class MySQLConnection extends \PDO
                 case '!=':
                 case 'LIKE':
                     $this->query .= sprintf(
-                        ' %s %s %s',
-                        $isOr ? '' : 'AND',
-                        $key,
+                        ' %s %s %s %s',
+                        $keyAttributes['type'],
+                        $keyAttributes['field'],
+                        $keyAttributes['operator'],
                         $this->quote($value)
                     );
 
@@ -137,9 +133,10 @@ class MySQLConnection extends \PDO
                     }
 
                     $this->query .= sprintf(
-                        ' %s %s (%s)',
-                        $isOr ? '' : 'AND',
-                        $key,
+                        ' %s %s %s (%s)',
+                        $keyAttributes['type'],
+                        $keyAttributes['field'],
+                        $keyAttributes['operator'],
                         $this->quote($value)
                     );
 
@@ -150,9 +147,10 @@ class MySQLConnection extends \PDO
                     }
 
                     $this->query .= sprintf(
-                        ' %s %s %s AND %s',
-                        $isOr ? '' : 'AND',
-                        $key,
+                        ' %s %s %s %s AND %s',
+                        $keyAttributes['type'],
+                        $keyAttributes['field'],
+                        $keyAttributes['operator'],
                         $this->quote($value[0]),
                         $this->quote($value[1])
                     );
@@ -164,9 +162,10 @@ class MySQLConnection extends \PDO
                     }
 
                     $this->query .= sprintf(
-                        ' %s %s %s',
-                        $isOr ? '' : 'AND',
-                        $key,
+                        ' %s %s %s %s',
+                        $keyAttributes['type'],
+                        $keyAttributes['field'],
+                        $keyAttributes['operator'],
                         mb_strtoupper(trim($value))
                     );
 
@@ -195,8 +194,8 @@ class MySQLConnection extends \PDO
                     // same as =
                     $this->query .= sprintf(
                         ' %s %s = %s',
-                        $isOr ? '' : 'AND',
-                        $key,
+                        $keyAttributes['type'],
+                        $keyAttributes['field'],
                         $this->quote($value)
                     );
 
@@ -231,6 +230,54 @@ class MySQLConnection extends \PDO
 
     private function parseKey($key)
     {
+        $type = $field = $operator = null;
 
+        $validTypes = ['AND', 'OR'];
+        $validOperators = ['=', '>', '>=', '<', '<=', '!=', 'LIKE', 'IN', 'BETWEEN', 'IS'];
+
+        $parsedKey = explode(' ', trim($key));
+
+        switch (count($parsedKey)) {
+            case 1:
+                if (in_array(mb_strtoupper($parsedKey[0]), $validTypes)) {
+                    $operator = mb_strtoupper($parsedKey[0]);
+                } else {
+                    $type = 'AND';
+                    $field = $parsedKey[0];
+                    $operator = '=';
+                }
+
+                break;
+            case 2:
+                if (in_array(mb_strtoupper($parsedKey[0]), $validTypes)) {
+                    $type = mb_strtoupper($parsedKey[0]);
+                    $field = $parsedKey[1];
+                    $operator = '=';
+                } else {
+                    $type = 'AND';
+                    $field = $parsedKey[0];
+                    $operator = $parsedKey[1];
+                }
+
+                break;
+            case 3:
+                $type = mb_strtoupper($parsedKey[0]);
+                $field = $parsedKey[1];
+                $operator = $parsedKey[2];
+
+                break;
+            default:
+                throw new \InvalidArgumentException();
+        }
+
+        if ($type && $field && !in_array($operator, $validOperators)) {
+            throw new \InvalidArgumentException();
+        }
+
+        return [
+            'type'     => $type,
+            'field'    => $field,
+            'operator' => $operator,
+        ];
     }
 }

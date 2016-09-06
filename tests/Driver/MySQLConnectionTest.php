@@ -76,6 +76,30 @@ class MySQLConnectionTest extends PHPUnit_Framework_TestCase
             $this->instance->dumpQuery($this->query, $params, true));
     }
 
+    public function testConditionBetween() {
+        $params = [
+            'conditions' => [
+                'foo =' => 'bar',
+                'foz BETWEEN' => [1, 10],
+            ],
+        ];
+
+        $this->assertEquals('SELECT foo, bar FROM my_table WHERE 1 AND foo = \'bar\' AND foz BETWEEN \'1\' AND \'10\' LIMIT 1',
+            $this->instance->dumpQuery($this->query, $params, true));
+    }
+
+    public function testConditionIn() {
+        $params = [
+            'conditions' => [
+                'foo =' => 'bar',
+                'foz IN' => [1, 2, 3],
+            ],
+        ];
+
+        $this->assertEquals('SELECT foo, bar FROM my_table WHERE 1 AND foo = \'bar\' AND foz IN (\'1\', \'2\', \'3\') LIMIT 1',
+            $this->instance->dumpQuery($this->query, $params, true));
+    }
+
     public function testNestedConditionOr()
     {
         $params = [
