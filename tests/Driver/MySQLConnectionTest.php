@@ -6,7 +6,7 @@ class MySQLConnectionTest extends PHPUnit_Framework_TestCase
     /** @var \Mocodo\Db\Driver\MySQLConnection */
     private $instance;
 
-    private $query = 'SELECT foo, bar FROM my_table WHERE 1';
+    private $query = 'SELECT foo, bar FROM my_table t WHERE 1';
 
     public function setUp()
     {
@@ -31,12 +31,14 @@ class MySQLConnectionTest extends PHPUnit_Framework_TestCase
     {
         $params = [
             'conditions' => [
-                'foo =' => 'bar',
+                't.foo =' => 'bar',
             ],
         ];
 
-        $this->assertEquals('SELECT foo, bar FROM my_table WHERE 1 AND foo = \'bar\' LIMIT 1',
-            $this->instance->dumpQuery($this->query, $params, true));
+        $this->assertEquals(
+            'SELECT foo, bar FROM my_table t WHERE 1 AND `t`.`foo` = \'bar\' LIMIT 1',
+            $this->instance->dumpQuery($this->query, $params, true)
+        );
     }
 
     public function testSimpleConditionLight()
@@ -47,8 +49,10 @@ class MySQLConnectionTest extends PHPUnit_Framework_TestCase
             ],
         ];
 
-        $this->assertEquals('SELECT foo, bar FROM my_table WHERE 1 AND foo = \'bar\' LIMIT 1',
-            $this->instance->dumpQuery($this->query, $params, true));
+        $this->assertEquals(
+            'SELECT foo, bar FROM my_table t WHERE 1 AND `foo` = \'bar\' LIMIT 1',
+            $this->instance->dumpQuery($this->query, $params, true)
+        );
     }
 
     public function testSimpleConditionNull()
@@ -59,8 +63,10 @@ class MySQLConnectionTest extends PHPUnit_Framework_TestCase
             ],
         ];
 
-        $this->assertEquals('SELECT foo, bar FROM my_table WHERE 1 AND foo IS NOT NULL LIMIT 1',
-            $this->instance->dumpQuery($this->query, $params, true));
+        $this->assertEquals(
+            'SELECT foo, bar FROM my_table t WHERE 1 AND `foo` IS NOT NULL LIMIT 1',
+            $this->instance->dumpQuery($this->query, $params, true)
+        );
     }
 
     public function testSimpleConditionOr()
@@ -72,47 +78,57 @@ class MySQLConnectionTest extends PHPUnit_Framework_TestCase
             ],
         ];
 
-        $this->assertEquals('SELECT foo, bar FROM my_table WHERE 1 AND foo IS NOT NULL OR bar = \'42\' LIMIT 1',
-            $this->instance->dumpQuery($this->query, $params, true));
+        $this->assertEquals(
+            'SELECT foo, bar FROM my_table t WHERE 1 AND `foo` IS NOT NULL OR `bar` = \'42\' LIMIT 1',
+            $this->instance->dumpQuery($this->query, $params, true)
+        );
     }
 
-    public function testConditionBetween() {
+    public function testConditionBetween()
+    {
         $params = [
             'conditions' => [
-                'foo =' => 'bar',
+                'foo ='       => 'bar',
                 'foz BETWEEN' => [1, 10],
             ],
         ];
 
-        $this->assertEquals('SELECT foo, bar FROM my_table WHERE 1 AND foo = \'bar\' AND foz BETWEEN \'1\' AND \'10\' LIMIT 1',
-            $this->instance->dumpQuery($this->query, $params, true));
+        $this->assertEquals(
+            'SELECT foo, bar FROM my_table t WHERE 1 AND `foo` = \'bar\' AND `foz` BETWEEN \'1\' AND \'10\' LIMIT 1',
+            $this->instance->dumpQuery($this->query, $params, true)
+        );
     }
 
-    public function testConditionIn() {
+    public function testConditionIn()
+    {
         $params = [
             'conditions' => [
-                'foo =' => 'bar',
+                'foo ='  => 'bar',
                 'foz IN' => [1, 2, 3],
             ],
         ];
 
-        $this->assertEquals('SELECT foo, bar FROM my_table WHERE 1 AND foo = \'bar\' AND foz IN (\'1\', \'2\', \'3\') LIMIT 1',
-            $this->instance->dumpQuery($this->query, $params, true));
+        $this->assertEquals(
+            'SELECT foo, bar FROM my_table t WHERE 1 AND `foo` = \'bar\' AND `foz` IN (\'1\', \'2\', \'3\') LIMIT 1',
+            $this->instance->dumpQuery($this->query, $params, true)
+        );
     }
 
     public function testNestedConditionOr()
     {
         $params = [
             'conditions' => [
-                'foo IS' => 'NOT NULL',
-                'OR'     => [
+                't.foo IS' => 'NOT NULL',
+                'OR'       => [
                     'foo IS' => 'NULL',
                     'bar >'  => 42,
                 ],
             ],
         ];
 
-        $this->assertEquals('SELECT foo, bar FROM my_table WHERE 1 AND foo IS NOT NULL OR (1 AND foo IS NULL AND bar > \'42\') LIMIT 1',
-            $this->instance->dumpQuery($this->query, $params, true));
+        $this->assertEquals(
+            'SELECT foo, bar FROM my_table t WHERE 1 AND `t`.`foo` IS NOT NULL OR (1 AND `foo` IS NULL AND `bar` > \'42\') LIMIT 1',
+            $this->instance->dumpQuery($this->query, $params, true)
+        );
     }
 }

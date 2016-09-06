@@ -276,8 +276,19 @@ class MySQLConnection extends \PDO
 
         return [
             'type'     => $type,
-            'field'    => $field,
+            'field'    => $this->escapeField($field),
             'operator' => $operator,
         ];
+    }
+
+    private function escapeField($field)
+    {
+        $parsedField = explode('.', $field);
+
+        foreach ($parsedField as &$item) {
+            $item = sprintf('`%s`', $item);
+        }
+
+        return implode('.', $parsedField);
     }
 }
