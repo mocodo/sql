@@ -23,6 +23,7 @@ class MySQLConnection extends \PDO
 
     public function find($query, array $params = [])
     {
+        $this->preparedParams = [];
         $this->query = $query;
 
         if (!empty($params['conditions'])) {
@@ -53,6 +54,7 @@ class MySQLConnection extends \PDO
 
     public function findOne($query, array $params = [])
     {
+        $this->preparedParams = [];
         $this->query = $query;
 
         if (!empty($params['conditions'])) {
@@ -77,6 +79,7 @@ class MySQLConnection extends \PDO
 
     public function dumpQuery($query, array $params = [], $single = true)
     {
+        $this->preparedParams = [];
         $this->query = $query;
 
         if (!empty($params['conditions'])) {
