@@ -6,6 +6,8 @@ class MySQLConnection extends \PDO
 {
     private $query;
 
+    private $preparedParams = [];
+
     public function quote($value, $parameterType = \PDO::PARAM_STR)
     {
         if (!is_array($value)) {
@@ -44,7 +46,7 @@ class MySQLConnection extends \PDO
         }
 
         $stmt = $this->prepare($this->query);
-        $stmt->execute();
+        $stmt->execute($this->preparedParams);
 
         return $stmt;
     }
@@ -68,7 +70,7 @@ class MySQLConnection extends \PDO
         $this->query .= ' LIMIT 1';
 
         $stmt = $this->prepare($this->query);
-        $stmt->execute();
+        $stmt->execute($this->preparedParams);
 
         return $stmt;
     }
@@ -109,6 +111,7 @@ class MySQLConnection extends \PDO
         // default behavior assume that operator is = and concat to AND
         foreach ($conditions as $key => $value) {
             $keyAttributes = $this->parseKey($key);
+            $placeholder = uniqid(':');
 
             switch ($keyAttributes['operator']) {
                 case '=':
@@ -123,8 +126,10 @@ class MySQLConnection extends \PDO
                         $keyAttributes['type'],
                         $keyAttributes['field'],
                         $keyAttributes['operator'],
-                        $this->quote($value)
+                        $placeholder
                     );
+
+                    $this->preparedParams[$placeholder] = $value;
 
                     break;
                 case 'IN':
@@ -132,12 +137,20 @@ class MySQLConnection extends \PDO
                         throw new \InvalidArgumentException('Expected array for IN condition');
                     }
 
+                    $index = 1;
+                    $placeholders = [];
+                    foreach ($value as $k => $v) {
+                        $this->preparedParams[$placeholder . '-' . $index] = $v;
+                        $placeholders[] = $placeholder . '-' . $index;
+                        $index++;
+                    }
+
                     $this->query .= sprintf(
                         ' %s %s %s (%s)',
                         $keyAttributes['type'],
                         $keyAttributes['field'],
                         $keyAttributes['operator'],
-                        $this->quote($value)
+                        implode(', ', $placeholders)
                     );
 
                     break;
@@ -151,9 +164,12 @@ class MySQLConnection extends \PDO
                         $keyAttributes['type'],
                         $keyAttributes['field'],
                         $keyAttributes['operator'],
-                        $this->quote($value[0]),
-                        $this->quote($value[1])
+                        $placeholder . '-0',
+                        $placeholder . '-1'
                     );
+
+                    $this->preparedParams[$placeholder . '-0'] = $value[0];
+                    $this->preparedParams[$placeholder . '-1'] = $value[1];
 
                     break;
                 case 'IS':
@@ -196,8 +212,10 @@ class MySQLConnection extends \PDO
                         ' %s %s = %s',
                         $keyAttributes['type'],
                         $keyAttributes['field'],
-                        $this->quote($value)
+                        $placeholder
                     );
+
+                    $this->preparedParams[$placeholder] = $value;
 
                     break;
             }

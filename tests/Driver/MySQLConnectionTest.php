@@ -35,8 +35,8 @@ class MySQLConnectionTest extends PHPUnit_Framework_TestCase
             ],
         ];
 
-        $this->assertEquals(
-            'SELECT foo, bar FROM my_table t WHERE 1 AND `t`.`foo` = \'bar\' LIMIT 1',
+        $this->assertStringMatchesFormat(
+            'SELECT foo, bar FROM my_table t WHERE 1 AND `t`.`foo` = %s LIMIT 1',
             $this->instance->dumpQuery($this->query, $params, true)
         );
     }
@@ -49,8 +49,8 @@ class MySQLConnectionTest extends PHPUnit_Framework_TestCase
             ],
         ];
 
-        $this->assertEquals(
-            'SELECT foo, bar FROM my_table t WHERE 1 AND `foo` = \'bar\' LIMIT 1',
+        $this->assertStringMatchesFormat(
+            'SELECT foo, bar FROM my_table t WHERE 1 AND `foo` = %s LIMIT 1',
             $this->instance->dumpQuery($this->query, $params, true)
         );
     }
@@ -63,7 +63,7 @@ class MySQLConnectionTest extends PHPUnit_Framework_TestCase
             ],
         ];
 
-        $this->assertEquals(
+        $this->assertStringMatchesFormat(
             'SELECT foo, bar FROM my_table t WHERE 1 AND `foo` IS NOT NULL LIMIT 1',
             $this->instance->dumpQuery($this->query, $params, true)
         );
@@ -78,8 +78,8 @@ class MySQLConnectionTest extends PHPUnit_Framework_TestCase
             ],
         ];
 
-        $this->assertEquals(
-            'SELECT foo, bar FROM my_table t WHERE 1 AND `foo` IS NOT NULL OR `bar` = \'42\' LIMIT 1',
+        $this->assertStringMatchesFormat(
+            'SELECT foo, bar FROM my_table t WHERE 1 AND `foo` IS NOT NULL OR `bar` = %s LIMIT 1',
             $this->instance->dumpQuery($this->query, $params, true)
         );
     }
@@ -93,8 +93,8 @@ class MySQLConnectionTest extends PHPUnit_Framework_TestCase
             ],
         ];
 
-        $this->assertEquals(
-            'SELECT foo, bar FROM my_table t WHERE 1 AND `foo` = \'bar\' AND `foz` BETWEEN \'1\' AND \'10\' LIMIT 1',
+        $this->assertStringMatchesFormat(
+            'SELECT foo, bar FROM my_table t WHERE 1 AND `foo` = %s AND `foz` BETWEEN %s AND %s LIMIT 1',
             $this->instance->dumpQuery($this->query, $params, true)
         );
     }
@@ -108,8 +108,8 @@ class MySQLConnectionTest extends PHPUnit_Framework_TestCase
             ],
         ];
 
-        $this->assertEquals(
-            'SELECT foo, bar FROM my_table t WHERE 1 AND `foo` = \'bar\' AND `foz` IN (\'1\', \'2\', \'3\') LIMIT 1',
+        $this->assertStringMatchesFormat(
+            'SELECT foo, bar FROM my_table t WHERE 1 AND `foo` = %s AND `foz` IN (%s, %s, %s) LIMIT 1',
             $this->instance->dumpQuery($this->query, $params, true)
         );
     }
@@ -126,8 +126,8 @@ class MySQLConnectionTest extends PHPUnit_Framework_TestCase
             ],
         ];
 
-        $this->assertEquals(
-            'SELECT foo, bar FROM my_table t WHERE 1 AND `t`.`foo` IS NOT NULL OR (1 AND `foo` IS NULL AND `bar` > \'42\') LIMIT 1',
+        $this->assertStringMatchesFormat(
+            'SELECT foo, bar FROM my_table t WHERE 1 AND `t`.`foo` IS NOT NULL OR (1 AND `foo` IS NULL AND `bar` > %s) LIMIT 1',
             $this->instance->dumpQuery($this->query, $params, true)
         );
     }
