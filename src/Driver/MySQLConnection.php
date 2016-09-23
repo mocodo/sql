@@ -2,7 +2,7 @@
 
 namespace Mocodo\Db\Driver;
 
-class MySQLConnection extends \PDO
+class MySQLConnection extends \PDO implements ConnectionInterface
 {
     private $query;
 
