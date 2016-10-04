@@ -143,8 +143,8 @@ class MySQLConnection extends \PDO implements ConnectionInterface
                     $index = 1;
                     $placeholders = [];
                     foreach ($value as $k => $v) {
-                        $this->preparedParams[$placeholder . '-' . $index] = $v;
-                        $placeholders[] = $placeholder . '-' . $index;
+                        $this->preparedParams[$placeholder . $index] = $v;
+                        $placeholders[] = $placeholder . $index;
                         $index++;
                     }
 
@@ -167,12 +167,12 @@ class MySQLConnection extends \PDO implements ConnectionInterface
                         $keyAttributes['type'],
                         $keyAttributes['field'],
                         $keyAttributes['operator'],
-                        $placeholder . '-0',
-                        $placeholder . '-1'
+                        $placeholder . '0',
+                        $placeholder . '1'
                     );
 
-                    $this->preparedParams[$placeholder . '-0'] = $value[0];
-                    $this->preparedParams[$placeholder . '-1'] = $value[1];
+                    $this->preparedParams[$placeholder . '0'] = $value[0];
+                    $this->preparedParams[$placeholder . '1'] = $value[1];
 
                     break;
                 case 'IS':
