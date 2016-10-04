@@ -304,6 +304,8 @@ class MySQLConnection extends \PDO implements ConnectionInterface
 
     private function escapeField($field)
     {
+        return $field;
+        // Currently commented because of issues when a field is caled in a function (eg.
         $parsedField = explode('.', $field);
 
         foreach ($parsedField as &$item) {
