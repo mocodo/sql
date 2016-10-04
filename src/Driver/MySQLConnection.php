@@ -124,6 +124,7 @@ class MySQLConnection extends \PDO implements ConnectionInterface
                 case '<=':
                 case '!=':
                 case 'LIKE':
+                case 'NOT LIKE':
                     $this->query .= sprintf(
                         ' %s %s %s %s',
                         $keyAttributes['type'],
@@ -136,6 +137,7 @@ class MySQLConnection extends \PDO implements ConnectionInterface
 
                     break;
                 case 'IN':
+                case 'NOT IN':
                     if (!is_array($value)) {
                         throw new \InvalidArgumentException('Expected array for IN condition');
                     }
@@ -158,6 +160,7 @@ class MySQLConnection extends \PDO implements ConnectionInterface
 
                     break;
                 case 'BETWEEN':
+                case 'NOT BETWEEN':
                     if (!is_array($value) || 2 != count($value)) {
                         throw new \InvalidArgumentException('Expected array of size 2 for BETWEEN condition');
                     }
@@ -176,6 +179,7 @@ class MySQLConnection extends \PDO implements ConnectionInterface
 
                     break;
                 case 'IS':
+                case 'IS NOT':
                     if (!in_array(mb_strtoupper(trim($value)), ['NULL', 'NOT NULL'])) {
                         throw new \InvalidArgumentException('Expected value of NULL of NOT NULL for IS condition');
                     }
@@ -254,42 +258,30 @@ class MySQLConnection extends \PDO implements ConnectionInterface
         $type = $field = $operator = null;
 
         $validTypes = ['AND', 'OR'];
-        $validOperators = ['=', '>', '>=', '<', '<=', '!=', 'LIKE', 'IN', 'BETWEEN', 'IS'];
+        $validOperators = [
+            '=',
+            '>',
+            '>=',
+            '<',
+            '<=',
+            '!=',
+            'NOT LIKE',
+            'NOT IN',
+            'NOT BETWEEN',
+            'IS NOT',
+            'LIKE',
+            'IN',
+            'BETWEEN',
+            'IS',
+        ];
 
-        $parsedKey = explode(' ', trim($key));
-
-        switch (count($parsedKey)) {
-            case 1:
-                if (in_array(mb_strtoupper($parsedKey[0]), $validTypes)) {
-                    $operator = mb_strtoupper($parsedKey[0]);
-                } else {
-                    $type = 'AND';
-                    $field = $parsedKey[0];
-                    $operator = '=';
-                }
-
-                break;
-            case 2:
-                if (in_array(mb_strtoupper($parsedKey[0]), $validTypes)) {
-                    $type = mb_strtoupper($parsedKey[0]);
-                    $field = $parsedKey[1];
-                    $operator = '=';
-                } else {
-                    $type = 'AND';
-                    $field = $parsedKey[0];
-                    $operator = $parsedKey[1];
-                }
-
-                break;
-            case 3:
-                $type = mb_strtoupper($parsedKey[0]);
-                $field = $parsedKey[1];
-                $operator = $parsedKey[2];
-
-                break;
-            default:
-                throw new \InvalidArgumentException();
-        }
+        // grab the operator
+        $type = $this->checkStart($key, $validTypes);
+        $field = trim(str_replace($type, '', $key));
+        $operator = $this->checkEnd($field, $validOperators);
+        $field = trim(str_replace($operator, '', $field));
+        $type = ($type === false) ? 'AND' : $type;
+        $operator = ($operator === false) ? '=' : $operator;
 
         if ($type && $field && !in_array($operator, $validOperators)) {
             throw new \InvalidArgumentException();
@@ -313,5 +305,43 @@ class MySQLConnection extends \PDO implements ConnectionInterface
         }
 
         return implode('.', $parsedField);
+    }
+
+    private function checkEnd($str, $end)
+    {
+        if (is_array($end)) {
+            foreach ($end as $el) {
+                if (mb_substr($str, -1 * mb_strlen($el)) === $el) {
+                    return $el;
+                }
+            }
+
+            return false;
+        } else {
+            if (mb_substr($str, -1 * mb_strlen($end)) === $end) {
+                return $end;
+            }
+
+            return false;
+        }
+    }
+
+    private function checkStart($str, $start)
+    {
+        if (is_array($start)) {
+            foreach ($start as $el) {
+                if (mb_substr($str, mb_strlen($el)) === $el) {
+                    return $el;
+                }
+            }
+
+            return false;
+        } else {
+            if (mb_substr($str, mb_strlen($start)) === $start) {
+                return $start;
+            }
+
+            return false;
+        }
     }
 }
