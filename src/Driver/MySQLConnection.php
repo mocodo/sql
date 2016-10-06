@@ -114,7 +114,6 @@ class MySQLConnection extends \PDO implements ConnectionInterface
         // default behavior assume that operator is = and concat to AND
         foreach ($conditions as $key => $value) {
             $keyAttributes = $this->parseKey($key);
-            error_log(print_r($keyAttributes, true));
             $placeholder = uniqid(':');
 
             switch ($keyAttributes['operator']) {
@@ -314,17 +313,20 @@ class MySQLConnection extends \PDO implements ConnectionInterface
 
     private function checkEnd($str, $end)
     {
+        $str = ' ' . $str;
         if (is_array($end)) {
             foreach ($end as $el) {
+                $el = ' ' . $el;
                 if (mb_substr($str, -1 * mb_strlen($el)) === $el) {
-                    return $el;
+                    return trim($el);
                 }
             }
 
             return false;
         } else {
+            $end = ' ' . $end;
             if (mb_substr($str, -1 * mb_strlen($end)) === $end) {
-                return $end;
+                return trim($end);
             }
 
             return false;
@@ -333,17 +335,20 @@ class MySQLConnection extends \PDO implements ConnectionInterface
 
     private function checkStart($str, $start)
     {
+        $str .= ' ';
         if (is_array($start)) {
             foreach ($start as $el) {
+                $el .= ' ';
                 if (mb_substr($str, 0) === $el) {
-                    return $el;
+                    return trim($el);
                 }
             }
 
             return false;
         } else {
+            $start .= ' ';
             if (mb_substr($str, 0) === $start) {
-                return $start;
+                return trim($start);
             }
 
             return false;
