@@ -317,7 +317,7 @@ class MySQLConnection extends \PDO implements ConnectionInterface
         if (is_array($end)) {
             foreach ($end as $el) {
                 $el = ' ' . $el;
-                if (mb_substr($str, -1 * mb_strlen($el)) === $el) {
+                if (mb_substr($str, -1 * mb_strlen($el), mb_strlen($el)) === $el) {
                     return trim($el);
                 }
             }
@@ -325,7 +325,7 @@ class MySQLConnection extends \PDO implements ConnectionInterface
             return false;
         } else {
             $end = ' ' . $end;
-            if (mb_substr($str, -1 * mb_strlen($end)) === $end) {
+            if (mb_substr($str, -1 * mb_strlen($end), mb_strlen($end)) === $end) {
                 return trim($end);
             }
 
@@ -339,7 +339,7 @@ class MySQLConnection extends \PDO implements ConnectionInterface
         if (is_array($start)) {
             foreach ($start as $el) {
                 $el .= ' ';
-                if (mb_substr($str, 0) === $el) {
+                if (mb_substr($str, 0, mb_strlen($el)) === $el) {
                     return trim($el);
                 }
             }
@@ -347,7 +347,7 @@ class MySQLConnection extends \PDO implements ConnectionInterface
             return false;
         } else {
             $start .= ' ';
-            if (mb_substr($str, 0) === $start) {
+            if (mb_substr($str, 0, mb_strlen($start)) === $start) {
                 return trim($start);
             }
 
