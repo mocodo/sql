@@ -114,6 +114,7 @@ class MySQLConnection extends \PDO implements ConnectionInterface
         // default behavior assume that operator is = and concat to AND
         foreach ($conditions as $key => $value) {
             $keyAttributes = $this->parseKey($key);
+            error_log(print_r($keyAttributes, true));
             $placeholder = uniqid(':');
 
             switch ($keyAttributes['operator']) {
@@ -259,12 +260,12 @@ class MySQLConnection extends \PDO implements ConnectionInterface
 
         $validTypes = ['AND', 'OR'];
         $validOperators = [
-            '=',
-            '>',
             '>=',
-            '<',
             '<=',
             '!=',
+            '=',
+            '>',
+            '<',
             'NOT LIKE',
             'NOT IN',
             'NOT BETWEEN',
@@ -285,6 +286,10 @@ class MySQLConnection extends \PDO implements ConnectionInterface
 
         if ($type && $field && !in_array($operator, $validOperators)) {
             throw new \InvalidArgumentException();
+        }
+
+        if ($type && !$field) {
+            $operator = $type;
         }
 
         return [
@@ -330,14 +335,14 @@ class MySQLConnection extends \PDO implements ConnectionInterface
     {
         if (is_array($start)) {
             foreach ($start as $el) {
-                if (mb_substr($str, mb_strlen($el)) === $el) {
+                if (mb_substr($str, 0) === $el) {
                     return $el;
                 }
             }
 
             return false;
         } else {
-            if (mb_substr($str, mb_strlen($start)) === $start) {
+            if (mb_substr($str, 0) === $start) {
                 return $start;
             }
 
